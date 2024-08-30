@@ -8,7 +8,7 @@ def get_current_time():
 
 def run_nmap(scan_type, target, output_file):
     """Run nmap scan and save output to a file"""
-    nmap_cmd = f"sudo nmap -{scan_type} -A -T4 -sV -Pn -p- {target} -oN {output_file}"
+    nmap_cmd = f"sudo nmap -{scan_type} -T5 -sV -Pn -p- {target} -oN {output_file}"
     subprocess.run(nmap_cmd, shell=True)
 
 def save_port_scan(target, port, output_file):
