@@ -28,8 +28,10 @@ def extract_ports(nmap_output_file):
 
 def main():
     foldername = input("Enter the folder name to save the results: ")
-    target = input("Enter the domain/IP or path to the file with IPs: ")
-
+    target = input("Enter the domain/IP to scan: ")
+    setscantype = input("Enter the scan type you wish (SYN(sS), FULL(sT), UDP(sU), ALL) (default: SYN): ")
+    scanforports = input("Do you want to scan for ports? (Y/n) (default: Y): ")
+    
     # Create necessary directories
     base_dir = f"{foldername}/enum/portscanners/nmap"
     port_dir = f"{foldername}/enum/ports"
@@ -38,21 +40,70 @@ def main():
 
     # Define nmap scan types
     scan_types = {'sS': 'SYN', 'sT': 'FULL', 'sU': 'UDP'}
-    
-    for scan, scan_type in scan_types.items():
+
+    all_ports = set()
+    scanned_ports = set()
+
+    if setscantype.upper == "ALL":
+        for scan, scan_type in scan_types.items():
+            date_hour = get_current_time()
+            nmapfile = f"nmap_{scan_type}_{target}_{date_hour}"
+            output_file = f"{base_dir}/{nmapfile}.nmap"
+            
+            run_nmap(scan, target, output_file)
+            
+            # Extract open ports from the nmap output
+            ports = extract_ports(output_file)
+            all_ports.update(ports)
+    elif setscantype.upper == "SYN":
         date_hour = get_current_time()
-        nmapfile = f"nmap_{scan_type}_{date_hour}"
+        scan = "sS"
+        scan_type = setscantype.upper
+        nmapfile = f"nmap_{scan_type}_{target}_{date_hour}"
         output_file = f"{base_dir}/{nmapfile}.nmap"
-        
+
         run_nmap(scan, target, output_file)
         
         # Extract open ports from the nmap output
         ports = extract_ports(output_file)
-        
-        # Perform additional scans for each open port
-        for port in ports:
-            port_nmapfile = f"{port_dir}/nmap_{scan_type}_{port}_{date_hour}.nmap"
-            save_port_scan(target, port, port_nmapfile)
+        all_ports.update(ports)
+    elif setscantype.upper == "FULL":
+        date_hour = get_current_time()
+        scan = "sT"
+        scan_type = setscantype.upper
+        nmapfile = f"nmap_{scan_type}_{target}_{date_hour}"
+        output_file = f"{base_dir}/{nmapfile}.nmap"
 
+        run_nmap(scan, target, output_file)
+        
+        # Extract open ports from the nmap output
+        ports = extract_ports(output_file)
+        all_ports.update(ports)
+    elif setscantype.upper == "UDP":
+        date_hour = get_current_time()
+        scan = "sU"
+        scan_type = setscantype.upper
+        nmapfile = f"nmap_{scan_type}_{target}_{date_hour}"
+        output_file = f"{base_dir}/{nmapfile}.nmap"
+        
+        run_nmap(scan, target, output_file)
+
+        # Extract open ports from the nmap output
+        ports = extract_ports(output_file)
+        all_ports.update(ports)
+        
+    # Read every nmap output file and add ports to the scanned_ports set
+    for file_name in os.listdir(base_dir):
+        if file_name.endswith(".nmap"):
+            file_path = os.path.join(base_dir, file_name)
+            scanned_ports.update(extract_ports(file_path))
+
+    # Perform additional scans for each unique open port
+    for port in all_ports:
+        if port not in scanned_ports:
+            port_nmapfile = f"nmap_port_{port}_{get_current_time()}.nmap"
+            output_file = f"{port_dir}/{port_nmapfile}"
+            save_port_scan(target, port, output_file)
+            scanned_ports.add(port)
 if __name__ == "__main__":
     main()
