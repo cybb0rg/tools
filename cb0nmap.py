@@ -29,8 +29,11 @@ def extract_ports(nmap_output_file):
 def main():
     foldername = input("Enter the folder name to save the results: ")
     target = input("Enter the domain/IP to scan: ")
-    setscantype = input("Enter the scan type you wish (SYN(sS), FULL(sT), UDP(sU), ALL) (default: SYN): ")
-    scanforports = input("Do you want to scan for ports? (Y/n) (default: Y): ")
+    askscantype = input("Enter the scan type you wish (SYN(sS), FULL(sT), UDP(sU), ALL) (default: SYN): ")
+    askscanforports = input("Do you want to scan for ports? (Y/n) (default: Y): ")
+
+    setscantype = askscantype if askscantype else "SYN"
+    scanforports = askscanforports if askscanforports else "Y"
     
     # Create necessary directories
     base_dir = f"{foldername}/enum/portscanners/nmap"
