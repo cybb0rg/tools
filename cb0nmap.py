@@ -70,33 +70,22 @@ def main():
         ports = extract_ports(output_file)
         all_ports.update(ports)
 
+    print(f"All extracted ports after initial scans: {all_ports}")
+
     if scanforports == "Y":
-        # Ensure all initial scan files are available before processing
-        date_hour = get_current_time()
-        
-        # Allow some time for nmap scans to complete or re-read files if empty
-        scanned_files = [file_name for file_name in os.listdir(base_dir) if file_name.endswith(".nmap")]
-        
-        if not scanned_files:
-            print(f"No nmap files found in {base_dir}. Please check the scans.")
-            return
-        
-        # Read every nmap output file and add ports to the scanned_ports set
-        for file_name in scanned_files:
-            file_path = os.path.join(base_dir, file_name)
-            scanned_ports.update(extract_ports(file_path))
-        
-        # Debug print to check scanned ports
-        print(f"Scanned Ports after initial scans: {scanned_ports}")
-    
         # Perform additional scans for each unique open port
         for port in all_ports:
-            if port not in scanned_ports:
-                port_nmapfile = f"nmap_port_{port}_{get_current_time()}.nmap"
-                output_file = f"{port_dir}/{port_nmapfile}"
-                print(f"Scanning port {port} and saving to {output_file}")
-                save_port_scan(target, port, output_file)
-                scanned_ports.add(port)
+            # Check if a scan for this port already exists in /enum/ports
+            existing_port_files = [f for f in os.listdir(port_dir) if f"nmap_port_{port}_" in f]
+            if existing_port_files:
+                print(f"Port {port} already has a scan file {existing_port_files[0]}, skipping...")
+                continue
+
+            port_nmapfile = f"nmap_port_{port}_{get_current_time()}.nmap"
+            output_file = f"{port_dir}/{port_nmapfile}"
+            print(f"Scanning port {port} and saving to {output_file}")
+            save_port_scan(target, port, output_file)
+            scanned_ports.add(port)
             
 if __name__ == "__main__":
     main()
