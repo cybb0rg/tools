@@ -53,7 +53,7 @@ def main():
             nmapfile = f"nmap_{scan_type}_{target}_{date_hour}"
             output_file = f"{base_dir}/{nmapfile}.nmap"
             
-            run_nmap(scan, target, output_file)
+            run_nmap(scan_type, target, output_file)
             
             # Extract open ports from the nmap output
             ports = extract_ports(output_file)
